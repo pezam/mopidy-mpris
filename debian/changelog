@@ -1,3 +1,11 @@
+mopidy-mpris (1.0.1-1) unstable; urgency=low
+
+  * Bump Standards-Version to 3.9.5.
+  * Update copyright year.
+  * Upload to unstable.
+
+ -- Stein Magnus Jodal <stein.magnus@jodal.no>  Sat, 11 Jan 2014 22:52:50 +0100
+
 mopidy-mpris (1.0.1-0mopidy1) unstable; urgency=low
 
   * New upstream release.
