@@ -5,7 +5,7 @@ import os
 from mopidy import config, exceptions, ext
 
 
-__version__ = '1.0.1'
+__version__ = '1.1.1'
 
 
 class Extension(ext.Extension):
@@ -33,6 +33,6 @@ class Extension(ext.Extension):
         except ImportError as e:
             raise exceptions.ExtensionError('dbus library not found', e)
 
-    def get_frontend_classes(self):
+    def setup(self, registry):
         from .frontend import MprisFrontend
-        return [MprisFrontend]
+        registry.add('frontend', MprisFrontend)

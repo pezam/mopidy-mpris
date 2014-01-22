@@ -3,11 +3,11 @@ Mopidy-MPRIS
 ************
 
 .. image:: https://pypip.in/v/Mopidy-MPRIS/badge.png
-    :target: https://crate.io/packages/Mopidy-MPRIS/
+    :target: https://pypi.python.org/pypi/Mopidy-MPRIS/
     :alt: Latest PyPI version
 
 .. image:: https://pypip.in/d/Mopidy-MPRIS/badge.png
-    :target: https://crate.io/packages/Mopidy-MPRIS/
+    :target: https://pypi.python.org/pypi/Mopidy-MPRIS/
     :alt: Number of PyPI downloads
 
 .. image:: https://travis-ci.org/mopidy/mopidy-mpris.png?branch=master
@@ -132,6 +132,16 @@ Project resources
 
 Changelog
 =========
+
+v1.1.1 (2014-01-22)
+-------------------
+
+- Fix: Make ``OpenUri()`` work even if the tracklist is empty.
+
+v1.1.0 (2014-01-20)
+-------------------
+
+- Updated extension API to match Mopidy 0.18.
 
 v1.0.1 (2013-11-20)
 -------------------
