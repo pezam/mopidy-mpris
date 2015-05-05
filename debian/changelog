@@ -1,6 +1,7 @@
 mopidy-mpris (1.2.0-1) unstable; urgency=medium
 
   * New upstream release.
+  * Update upstream copyright year.
 
  -- Stein Magnus Jodal <stein.magnus@jodal.no>  Tue, 05 May 2015 23:50:27 +0200
 

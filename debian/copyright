@@ -4,7 +4,7 @@ Upstream-Contact: Stein Magnus Jodal <stein.magnus@jodal.no>
 Source: https://github.com/mopidy/mopidy-mpris
 
 Files: *
-Copyright: 2009-2014 Stein Magnus Jodal and contributors
+Copyright: 2009-2015 Stein Magnus Jodal and contributors
 License: Apache-2.0
 
 Files: debian/*
