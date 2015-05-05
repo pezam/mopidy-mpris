@@ -1,43 +1,37 @@
 from __future__ import unicode_literals
 
-import datetime
-import mock
 import unittest
 
-import pykka
-
-try:
-    import dbus
-except ImportError:
-    dbus = False
+import mock
 
 from mopidy import core
 from mopidy.audio import PlaybackState
-from mopidy.backend import dummy
 from mopidy.models import Track
 
-if dbus:
-    from mopidy_mpris import objects
+import pykka
+
+from mopidy_mpris import objects
+
+from tests import dummy_backend
 
 
-@unittest.skipUnless(dbus, 'dbus not found')
 class PlayerInterfaceTest(unittest.TestCase):
     def setUp(self):
         objects.MprisObject._connect_to_dbus = mock.Mock()
-        self.backend = dummy.create_dummy_backend_proxy()
+        self.backend = dummy_backend.create_proxy()
         self.core = core.Core.start(backends=[self.backend]).proxy()
         self.mpris = objects.MprisObject(config={}, core=self.core)
 
         foo = self.core.playlists.create('foo').get()
-        foo = foo.copy(last_modified=datetime.datetime(2012, 3, 1, 6, 0, 0))
+        foo = foo.copy(last_modified=3000000)
         foo = self.core.playlists.save(foo).get()
 
         bar = self.core.playlists.create('bar').get()
-        bar = bar.copy(last_modified=datetime.datetime(2012, 2, 1, 6, 0, 0))
+        bar = bar.copy(last_modified=2000000)
         bar = self.core.playlists.save(bar).get()
 
         baz = self.core.playlists.create('baz').get()
-        baz = baz.copy(last_modified=datetime.datetime(2012, 1, 1, 6, 0, 0))
+        baz = baz.copy(last_modified=1000000)
         baz = self.core.playlists.save(baz).get()
         self.playlist = baz
 

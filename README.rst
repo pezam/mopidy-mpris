@@ -2,19 +2,19 @@
 Mopidy-MPRIS
 ************
 
-.. image:: https://pypip.in/v/Mopidy-MPRIS/badge.png
+.. image:: https://img.shields.io/pypi/v/Mopidy-MPRIS.svg?style=flat
     :target: https://pypi.python.org/pypi/Mopidy-MPRIS/
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/Mopidy-MPRIS/badge.png
+.. image:: https://img.shields.io/pypi/dm/Mopidy-MPRIS.svg?style=flat
     :target: https://pypi.python.org/pypi/Mopidy-MPRIS/
     :alt: Number of PyPI downloads
 
-.. image:: https://travis-ci.org/mopidy/mopidy-mpris.png?branch=master
+.. image:: https://img.shields.io/travis/mopidy/mopidy-mpris/master.svg?style=flat
     :target: https://travis-ci.org/mopidy/mopidy-mpris
     :alt: Travis CI build status
 
-.. image:: https://coveralls.io/repos/mopidy/mopidy-mpris/badge.png?branch=master
+.. image:: https://img.shields.io/coveralls/mopidy/mopidy-mpris/master.svg?style=flat
    :target: https://coveralls.io/r/mopidy/mopidy-mpris?branch=master
    :alt: Test coverage
 
@@ -42,12 +42,20 @@ Dependencies
 Installation
 ============
 
-Install by running::
+Debian/Ubuntu/Raspbian: Install the ``mopidy-mpris`` package from
+`apt.mopidy.com <http://apt.mopidy.com/>`_::
+
+    sudo apt-get install mopidy-mpris
+
+Arch Linux: Install the ``mopidy-mpris`` package from
+`AUR <https://aur.archlinux.org/packages/mopidy-mpris/>`_::
+
+    yaourt -S mopidy-mpris
+
+Else: Install the dependencies listed above yourself, and then install the
+package from PyPI::
 
     pip install Mopidy-MPRIS
-
-Or, if available, install the Debian/Ubuntu package from `apt.mopidy.com
-<http://apt.mopidy.com/>`_.
 
 
 Configuration
@@ -58,7 +66,11 @@ There's no configuration needed for the MPRIS extension to work.
 The following configuration values are available:
 
 - ``mpris/enabled``: If the MPRIS extension should be enabled or not.
+
 - ``mpris/desktop_file``: Path to Mopidy's ``.desktop`` file.
+
+- ``mpris/bus_type``: The type of D-Bus bus Mopidy-MPRIS should connect to.
+  Choices include ``session`` (the default) and ``system``.
 
 
 Usage
@@ -67,12 +79,23 @@ Usage
 The extension is enabled by default if all dependencies are available.
 
 
+Running as a service and connecting to the system bus
+-----------------------------------------------------
+
+If Mopidy is running as an user without an X display, e.g. as a system service,
+then Mopidy-MPRIS will fail with the default config. To fix this, you can set
+the ``mpris/bus_type`` config value to ``system``. This will lead to
+Mopidy-MPRIS making itself available on the system bus instead of the logged in
+user's session bus. Note that few MPRIS clients will try to access MPRIS
+devices on the system bus, so this will give you limited functionality.
+
+
 Controlling Mopidy through the Ubuntu Sound Menu
 ------------------------------------------------
 
 If you are running Ubuntu and installed Mopidy using the Debian package from
-APT you should be able to control Mopidy through the Ubuntu Sound Menu without
-any changes.
+APT you should be able to control Mopidy instances running as your own user
+through the Ubuntu Sound Menu without any additional setup.
 
 If you installed Mopidy in any other way and want to control Mopidy through the
 Ubuntu Sound Menu, you must install the ``mopidy.desktop`` file which can be
@@ -80,10 +103,10 @@ found in the ``data/`` dir of the Mopidy source repo into the
 ``/usr/share/applications`` dir by hand::
 
     cd /path/to/mopidy/source
-    sudo cp data/mopidy.desktop /usr/share/applications/
+    sudo cp extra/desktop/mopidy.desktop /usr/share/applications/
 
 If the correct path to the installed ``mopidy.desktop`` file on your system
-isn't ``/usr/share/applications/mopidy.conf``, you'll need to set the
+isn't ``/usr/share/applications/mopidy.desktop``, you'll need to set the
 ``mpris/desktop_file`` config value.
 
 After you have installed the file, start Mopidy in any way, and Mopidy should
@@ -132,6 +155,31 @@ Project resources
 
 Changelog
 =========
+
+v1.2.0 (2015-05-05)
+-------------------
+
+- Fix crash on seek event: Update ``seeked`` event handler to accept the
+  ``time_position`` keyword argument. Recent versions of Mopidy passes all
+  arguments to event handlers as keyword arguments, not positional arguments.
+  (Fixes: #12)
+
+- Fix crash on tracks longer than 35 minutes: The ``mpris:length`` attribute in
+  the ``Metadata`` property is now typed to a 64-bit integer.
+
+- Update ``Seek()`` implementation to only pass positive numbers to Mopidy, as
+  Mopidy 1.1 is stricter about its input validation and no longer accepts seeks
+  to negative positions.
+
+- Add a hardcoded list of MIME types to the root interface
+  ``SupportedMimeTypes`` property. This is a temporary solution to be able to
+  play audio through UPnP using Rygel and Mopidy-MPRIS. Long term,
+  mopidy/mopidy#812 is the proper solution. (Fixes: #7, PR: #11)
+
+- Add a ``mpris/bus_type`` config value for making Mopidy-MPRIS connect to the
+  D-Bus system bus instead of the session bus. (Fixes: #9, PR: #10)
+
+- Update tests to pass with Mopidy 1.0.
 
 v1.1.1 (2014-01-22)
 -------------------

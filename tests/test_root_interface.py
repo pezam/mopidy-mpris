@@ -1,23 +1,18 @@
 from __future__ import unicode_literals
 
-import mock
 import unittest
+
+import mock
+
+from mopidy import core
 
 import pykka
 
-try:
-    import dbus
-except ImportError:
-    dbus = False
+from mopidy_mpris import objects
 
-from mopidy import core
-from mopidy.backend import dummy
-
-if dbus:
-    from mopidy_mpris import objects
+from tests import dummy_backend
 
 
-@unittest.skipUnless(dbus, 'dbus not found')
 class RootInterfaceTest(unittest.TestCase):
     def setUp(self):
         config = {
@@ -28,7 +23,7 @@ class RootInterfaceTest(unittest.TestCase):
 
         objects.exit_process = mock.Mock()
         objects.MprisObject._connect_to_dbus = mock.Mock()
-        self.backend = dummy.create_dummy_backend_proxy()
+        self.backend = dummy_backend.create_proxy()
         self.core = core.Core.start(backends=[self.backend]).proxy()
         self.mpris = objects.MprisObject(config=config, core=self.core)
 
@@ -82,6 +77,14 @@ class RootInterfaceTest(unittest.TestCase):
         self.assertEquals(len(result), 1)
         self.assertEquals(result[0], 'dummy')
 
-    def test_supported_mime_types_is_empty(self):
+    def test_supported_mime_types_has_hardcoded_entries(self):
         result = self.mpris.Get(objects.ROOT_IFACE, 'SupportedMimeTypes')
-        self.assertEquals(len(result), 0)
+        self.assertEqual(result, [
+            'audio/mpeg',
+            'audio/x-ms-wma',
+            'audio/x-ms-asf',
+            'audio/x-flac',
+            'audio/flac',
+            'audio/l16;channels=2;rate=44100',
+            'audio/l16;rate=44100;channels=2',
+        ])

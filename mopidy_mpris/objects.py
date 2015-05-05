@@ -49,7 +49,15 @@ class MprisObject(dbus.service.Object):
             'SupportedUriSchemes': (self.get_SupportedUriSchemes, None),
             # NOTE Return MIME types supported by local backend if support for
             # reporting supported MIME types is added
-            'SupportedMimeTypes': (dbus.Array([], signature='s'), None),
+            'SupportedMimeTypes': (dbus.Array([
+                dbus.String('audio/mpeg'),
+                dbus.String('audio/x-ms-wma'),
+                dbus.String('audio/x-ms-asf'),
+                dbus.String('audio/x-flac'),
+                dbus.String('audio/flac'),
+                dbus.String('audio/l16;channels=2;rate=44100'),
+                dbus.String('audio/l16;rate=44100;channels=2'),
+                ], signature='s'), None),
         }
 
     def _get_player_iface_properties(self):
@@ -79,9 +87,17 @@ class MprisObject(dbus.service.Object):
         }
 
     def _connect_to_dbus(self):
-        logger.debug('Connecting to D-Bus...')
-        bus_name = dbus.service.BusName(BUS_NAME, dbus.SessionBus())
-        logger.info('MPRIS server connected to D-Bus')
+        bus_type = self.config['mpris']['bus_type']
+        logger.debug('Connecting to D-Bus %s bus...', bus_type)
+
+        if bus_type == 'system':
+            bus = dbus.SystemBus()
+        else:
+            bus = dbus.SessionBus()
+
+        bus_name = dbus.service.BusName(BUS_NAME, bus)
+        logger.info('MPRIS server connected to D-Bus %s bus', bus_type)
+
         return bus_name
 
     def get_playlist_id(self, playlist_uri):
@@ -103,7 +119,7 @@ class MprisObject(dbus.service.Object):
         assert track_id.startswith('/com/mopidy/track/')
         return track_id.split('/')[-1]
 
-    ### Properties interface
+    # --- Properties interface
 
     @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
                          in_signature='ss', out_signature='v')
@@ -148,7 +164,7 @@ class MprisObject(dbus.service.Object):
             dbus.PROPERTIES_IFACE, interface, changed_properties,
             invalidated_properties)
 
-    ### Root interface methods
+    # --- Root interface methods
 
     @dbus.service.method(dbus_interface=ROOT_IFACE)
     def Raise(self):
@@ -160,7 +176,7 @@ class MprisObject(dbus.service.Object):
         logger.debug('%s.Quit called', ROOT_IFACE)
         exit_process()
 
-    ### Root interface properties
+    # --- Root interface properties
 
     def get_DesktopEntry(self):
         return os.path.splitext(os.path.basename(
@@ -169,7 +185,7 @@ class MprisObject(dbus.service.Object):
     def get_SupportedUriSchemes(self):
         return dbus.Array(self.core.uri_schemes.get(), signature='s')
 
-    ### Player interface methods
+    # --- Player interface methods
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE)
     def Next(self):
@@ -238,6 +254,8 @@ class MprisObject(dbus.service.Object):
         offset_in_milliseconds = offset // 1000
         current_position = self.core.playback.time_position.get()
         new_position = current_position + offset_in_milliseconds
+        if new_position < 0:
+            new_position = 0
         self.core.playback.seek(new_position)
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE)
@@ -274,14 +292,14 @@ class MprisObject(dbus.service.Object):
         else:
             logger.debug('Track with URI "%s" not found in library.', uri)
 
-    ### Player interface signals
+    # --- Player interface signals
 
     @dbus.service.signal(dbus_interface=PLAYER_IFACE, signature='x')
     def Seeked(self, position):
         logger.debug('%s.Seeked signaled', PLAYER_IFACE)
         # Do nothing, as just calling the method is enough to emit the signal.
 
-    ### Player interface properties
+    # --- Player interface properties
 
     def get_PlaybackStatus(self):
         state = self.core.playback.state.get()
@@ -346,7 +364,7 @@ class MprisObject(dbus.service.Object):
             (_, track) = current_tl_track
             metadata = {'mpris:trackid': self.get_track_id(current_tl_track)}
             if track.length:
-                metadata['mpris:length'] = track.length * 1000
+                metadata['mpris:length'] = dbus.Int64(track.length * 1000)
             if track.uri:
                 metadata['xesam:url'] = track.uri
             if track.name:
@@ -364,7 +382,7 @@ class MprisObject(dbus.service.Object):
                 metadata['xesam:albumArtist'] = dbus.Array(
                     [a.name for a in artists if a.name], signature='s')
             if track.album and track.album.images:
-                url = list(track.album.images)[0]
+                url = sorted(track.album.images)[0]
                 if url:
                     metadata['mpris:artUrl'] = url
             if track.disc_no:
@@ -435,7 +453,7 @@ class MprisObject(dbus.service.Object):
         # NOTE This could be a setting for the end user to change.
         return True
 
-    ### Playlists interface methods
+    # --- Playlists interface methods
 
     @dbus.service.method(dbus_interface=PLAYLISTS_IFACE)
     def ActivatePlaylist(self, playlist_id):
@@ -466,14 +484,14 @@ class MprisObject(dbus.service.Object):
             for p in playlists]
         return dbus.Array(results, signature='(oss)')
 
-    ### Playlists interface signals
+    # --- Playlists interface signals
 
     @dbus.service.signal(dbus_interface=PLAYLISTS_IFACE, signature='(oss)')
     def PlaylistChanged(self, playlist):
         logger.debug('%s.PlaylistChanged signaled', PLAYLISTS_IFACE)
         # Do nothing, as just calling the method is enough to emit the signal.
 
-    ### Playlists interface properties
+    # --- Playlists interface properties
 
     def get_PlaylistCount(self):
         return len(self.core.playlists.playlists.get())

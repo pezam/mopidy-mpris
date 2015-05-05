@@ -1,34 +1,34 @@
 from __future__ import unicode_literals
 
-import mock
 import unittest
 
-import pykka
+import dbus
 
-try:
-    import dbus
-except ImportError:
-    dbus = False
+import mock
 
 from mopidy import core
-from mopidy.backend import dummy
 from mopidy.core import PlaybackState
 from mopidy.models import Album, Artist, Track
 
-if dbus:
-    from mopidy_mpris import objects
+import pykka
+
+from mopidy_mpris import objects
+
+from tests import dummy_backend, dummy_mixer
+
 
 PLAYING = PlaybackState.PLAYING
 PAUSED = PlaybackState.PAUSED
 STOPPED = PlaybackState.STOPPED
 
 
-@unittest.skipUnless(dbus, 'dbus not found')
 class PlayerInterfaceTest(unittest.TestCase):
     def setUp(self):
         objects.MprisObject._connect_to_dbus = mock.Mock()
-        self.backend = dummy.create_dummy_backend_proxy()
-        self.core = core.Core.start(backends=[self.backend]).proxy()
+        self.backend = dummy_backend.create_proxy()
+        self.mixer = dummy_mixer.create_proxy()
+        self.core = core.Core.start(
+            backends=[self.backend], mixer=self.mixer).proxy()
         self.mpris = objects.MprisObject(config={}, core=self.core)
 
     def tearDown(self):
@@ -158,11 +158,12 @@ class PlayerInterfaceTest(unittest.TestCase):
             result['mpris:trackid'], '/com/mopidy/track/%d' % tlid)
 
     def test_get_metadata_has_track_length(self):
-        self.core.tracklist.add([Track(uri='dummy:a', length=40000)])
+        self.core.tracklist.add([Track(uri='dummy:a', length=3600000)])
         self.core.playback.play()
         result = self.mpris.Get(objects.PLAYER_IFACE, 'Metadata')
         self.assertIn('mpris:length', result.keys())
-        self.assertEqual(result['mpris:length'], 40000000)
+        self.assertEqual(result['mpris:length'], 3600000000)
+        self.assertIsInstance(result['mpris:length'], dbus.Int64)
 
     def test_get_metadata_has_track_uri(self):
         self.core.tracklist.add([Track(uri='dummy:a')])
@@ -240,7 +241,7 @@ class PlayerInterfaceTest(unittest.TestCase):
         self.assertEqual(result['xesam:trackNumber'], 7)
 
     def test_get_volume_should_return_volume_between_zero_and_one(self):
-        self.core.playback.volume = None
+        # dummy_mixer starts out with None as the volume
         result = self.mpris.Get(objects.PLAYER_IFACE, 'Volume')
         self.assertEqual(result, 0)
 

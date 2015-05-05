@@ -1,5 +1,6 @@
-import mock
 import unittest
+
+import mock
 
 from mopidy_mpris import Extension, frontend as frontend_lib
 
@@ -13,6 +14,7 @@ class ExtensionTest(unittest.TestCase):
 
         self.assertIn('[mpris]', config)
         self.assertIn('enabled = true', config)
+        self.assertIn('bus_type = session', config)
 
     def test_get_config_schema(self):
         ext = Extension()
@@ -20,6 +22,7 @@ class ExtensionTest(unittest.TestCase):
         schema = ext.get_config_schema()
 
         self.assertIn('desktop_file', schema)
+        self.assertIn('bus_type', schema)
 
     def test_get_frontend_classes(self):
         ext = Extension()

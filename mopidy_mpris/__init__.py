@@ -5,7 +5,7 @@ import os
 from mopidy import config, exceptions, ext
 
 
-__version__ = '1.1.1'
+__version__ = '1.2.0'
 
 
 class Extension(ext.Extension):
@@ -21,13 +21,10 @@ class Extension(ext.Extension):
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
         schema['desktop_file'] = config.Path()
+        schema['bus_type'] = config.String(choices=['session', 'system'])
         return schema
 
     def validate_environment(self):
-        if 'DISPLAY' not in os.environ:
-            raise exceptions.ExtensionError(
-                'An X11 $DISPLAY is needed to use D-Bus')
-
         try:
             import dbus  # noqa
         except ImportError as e:
