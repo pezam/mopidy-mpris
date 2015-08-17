@@ -156,6 +156,12 @@ Project resources
 Changelog
 =========
 
+v1.3.0 (2015-08-11)
+-------------------
+
+- No longer allow ``Quit()`` to shut down the Mopidy server process. Mopidy has
+  no public API for Mopidy extensions to shut down the server.
+
 v1.2.0 (2015-05-05)
 -------------------
 
