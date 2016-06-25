@@ -111,3 +111,8 @@ class MprisFrontend(pykka.ThreadingActor, CoreListener):
         playlist_id = self.mpris_object.get_playlist_id(playlist.uri)
         playlist = (playlist_id, playlist.name, '')
         self.mpris_object.PlaylistChanged(playlist)
+
+    def playback_state_changed(self, old_state, new_state):
+        logger.debug('Received playback_state_changed')
+        self._emit_properties_changed(
+            objects.PLAYER_IFACE, ['PlaybackStatus', 'Metadata'])
